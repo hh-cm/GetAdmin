@@ -85,7 +85,7 @@ var
 
 implementation
 
-uses Unit2;
+uses AboutForm;
 
 {$R *.dfm}
 
@@ -135,7 +135,6 @@ procedure TServer.FormCreate(Sender: TObject);
 var
   appINI: TIniFile;
   CmdStr, PathStr, paramStr, showasStr: String;
-  About: TAbout;
   m, step, Count: Integer;
   Hint_Command, Hint_Path, Hint_Param, Hint_Showas,
     Ver, Ready, Hint_Openpath, MinTray, StrtUp,
@@ -146,22 +145,15 @@ var
 begin
   version := '2.6';
 
-  if FileExists(ExtractFilePath(Application.ExeName) + 'GetAdmin.ini') then
+  if not FileExists(ExtractFilePath(Application.ExeName) + 'GetAdmin.ini') then
   begin
-  end
-  else
-  begin
-    About := TAbout.Create(Self);
-    About.BorderStyle := bsDialog;
-    About.version.Caption := version;
-    About.Label5.AutoSize := False;
-    About.Label5.Caption := 'The program is delivered by a principle "AS IS". No warranty is not attached and is not provided. You use this software at your own risk.' + ' The author will not be responsible for any loss or corruption of data, any loss of profit during use or misuse of this software.';
-    About.Label6.Cursor := crHandPoint;
-    About.Label6.Font.Color := clBlue;
+    frmAbout.version.Caption := version;
+    frmAbout.Label5.AutoSize := False;
+    frmAbout.Label5.Caption := 'The program is delivered by a principle "AS IS". No warranty is not attached and is not provided. You use this software at your own risk.' + ' The author will not be responsible for any loss or corruption of data, any loss of profit during use or misuse of this software.';
 
-    rez := About.ShowModal;
-    About.Free;
+    frmAbout.ShowModal;
   end;
+
   appINI := TIniFile.Create(ChangeFileExt(Application.ExeName, '.ini'));
   Language.ItemIndex := StrToInt(appINI.ReadString('Properties', 'Lang', '1'));
 
@@ -667,7 +659,7 @@ begin
               HotKey[n] := $22;
 
             if key[n] = 'PGUP' then
-             HotKey[n] := $21;
+              HotKey[n] := $21;
 
             if key[n] = 'SCRL' then
               HotKey[n] := $91;
@@ -1153,26 +1145,20 @@ end;
 
 procedure TServer.Label13Click(Sender: TObject);
 begin
-  About := TAbout.Create(Self);
-  About.BorderStyle := bsDialog;
-  About.version.Caption := version;
-  About.Label5.AutoSize := False;
+  frmAbout.version.Caption := version;
+  frmAbout.Label5.AutoSize := False;
 
   { TODO : Neues About Fenster? }
   if Language.ItemIndex in [1, 2] then
   begin
-    About.Label5.Caption := 'The program is delivered by a principle "AS IS". No warranty is not attached and is not provided. You use this software at your own risk.' + ' The author will not be responsible for any loss or corruption of data, any loss of profit during use or misuse of this software.';
+    frmAbout.Label5.Caption := 'The program is delivered by a principle "AS IS". No warranty is not attached and is not provided. You use this software at your own risk.' + ' The author will not be responsible for any loss or corruption of data, any loss of profit during use or misuse of this software.';
   end;
   if Language.ItemIndex = 0 then
   begin
-    About.Label5.Caption := 'Программа поставляется по принципу "КАК ЕСТЬ" ("AS IS").Никаких гарантий не прилагается и не предусматривается. Вы используете это программное обеспечение на свой страх и риск.' + ' Автор не будет отвечать ни за какие потери или искажения данных, любую упущенную выгоду в процессе использования или неправильного использования этого программного обечпечения.';
+    frmAbout.Label5.Caption := 'Программа поставляется по принципу "КАК ЕСТЬ" ("AS IS").Никаких гарантий не прилагается и не предусматривается. Вы используете это программное обеспечение на свой страх и риск.' + ' Автор не будет отвечать ни за какие потери или искажения данных, любую упущенную выгоду в процессе использования или неправильного использования этого программного обечпечения.';
   end;
 
-  About.Label6.Cursor := crHandPoint;
-  About.Label6.Font.Color := clBlue;
-
-  rez := About.ShowModal;
-  About.Free;
+  frmAbout.ShowModal;
 end;
 
 procedure TServer.ScrollBox1MouseWheelDown(Sender: TObject;

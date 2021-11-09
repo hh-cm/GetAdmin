@@ -94,7 +94,6 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_MajorVer>2</VerInfo_MajorVer>
         <VerInfo_MinorVer>6</VerInfo_MinorVer>
-        <DCC_Define>madExcept;$(DCC_Define)</DCC_Define>
         <DCC_MapFile>3</DCC_MapFile>
         <DCC_DebugInformation>2</DCC_DebugInformation>
         <DCC_LocalDebugSymbols>true</DCC_LocalDebugSymbols>
@@ -123,8 +122,8 @@
         <DCCReference Include="Iobroker.pas">
             <Form>Form1</Form>
         </DCCReference>
-        <DCCReference Include="Unit2.pas">
-            <Form>About</Form>
+        <DCCReference Include="AboutForm.pas">
+            <Form>frmAbout</Form>
         </DCCReference>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>

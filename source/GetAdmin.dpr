@@ -1,14 +1,9 @@
 program GetAdmin;
 
 uses
-  madExcept,
-  madLinkDisAsm,
-  madListHardware,
-  madListProcesses,
-  madListModules,
   Forms, Windows, Dialogs,
   Iobroker in 'Iobroker.pas' {Form1} ,
-  Unit2 in 'Unit2.pas' {About};
+  AboutForm in 'AboutForm.pas' {frmAbout};
 
 {$R *.res}
 
@@ -23,6 +18,7 @@ begin
 
   Application.Initialize;
   Application.CreateForm(TServer, Server);
+  Application.CreateForm(TfrmAbout, frmAbout);
   Application.Run;
 
 end.
