@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, ExtCtrls, ShellAPI, jpeg;
+  Dialogs, StdCtrls, Buttons, jpeg, Vcl.ExtCtrls;
 
 type
   TfrmAbout = class(TForm)
@@ -27,8 +27,6 @@ var
   frmAbout: TfrmAbout;
 
 implementation
-
-uses Iobroker;
 
 {$R *.dfm}
 
