@@ -5,65 +5,61 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ShellApi, IdBaseComponent, IdComponent, IdTCPServer,
+  Dialogs, StdCtrls, ShellApi, IdBaseComponent, IdComponent,
   IdCustomHTTPServer, IdHTTPServer, INIfiles, ComCtrls, Buttons,
   Menus, Registry, tlhelp32, IdTCPConnection, IdTCPClient,
-  IdHTTP, ExtCtrls, CoolTrayIcon, IdContext, IdCustomTCPServer;
+  IdHTTP, ExtCtrls, IdContext, IdCustomTCPServer, Vcl.AppEvnts;
 
 type
-  TServer = class(TForm)
+  TfrmMain = class(TForm)
     IdHTTPServer1: TIdHTTPServer;
-    BtnSave: TButton;
-    CoolTrayIcon1: TCoolTrayIcon;
+    btnSave: TButton;
     PopupMenu1: TPopupMenu;
     N1: TMenuItem;
     N2: TMenuItem;
     IdHTTP1: TIdHTTP;
-    BitBtn17: TBitBtn;
+    btnClose: TBitBtn;
     OpenDialog1: TOpenDialog;
-    GroupBox1: TGroupBox;
+    gbServer: TGroupBox;
     MainServer: TEdit;
-    Label1: TLabel;
-    Label2: TLabel;
+    lblServerIP: TLabel;
+    lblServerPort: TLabel;
     MainServerPort: TEdit;
-    GroupBox2: TGroupBox;
-    Label7: TLabel;
+    gbSimpleApi: TGroupBox;
+    lblSimpleApiIP: TLabel;
     SimpleAPI_IP: TEdit;
     SimpleAPI_Port: TEdit;
-    Label8: TLabel;
-    GroupBox3: TGroupBox;
+    lblSimpleApiPort: TLabel;
+    gbOptions: TGroupBox;
     StartUp: TCheckBox;
     ToTray: TCheckBox;
-    GroupBox4: TGroupBox;
-    Label9: TLabel;
-    Label6: TLabel;
-    Label10: TLabel;
-    Label11: TLabel;
+    gbCommandList: TGroupBox;
+    lblPath: TLabel;
+    lblCommand: TLabel;
+    lblParameters: TLabel;
+    lblShowCommand: TLabel;
     ScrollBox1: TScrollBox;
-    Label13: TLabel;
-    StatusBar1: TStatusBar;
-    Label5: TLabel;
+    lblAbout: TLabel;
+    StatusBar: TStatusBar;
+    lblNumberOfLines: TLabel;
     Count1: TEdit;
     Language: TComboBox;
+    TrayIcon: TTrayIcon;
     procedure FormCreate(Sender: TObject);
     procedure IdHTTPServer1CommandGet(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
-    procedure BtnSaveClick(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
     procedure N1Click(Sender: TObject);
     procedure N2Click(Sender: TObject);
     procedure ClickerOpenpath(Sender: TObject);
     procedure ClickTedit(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure BitBtn17Click(Sender: TObject);
-    procedure Label3DblClick(Sender: TObject);
-    procedure Label13Click(Sender: TObject);
-    procedure ScrollBox1MouseWheelDown(Sender: TObject; Shift: TShiftState;
-      MousePos: TPoint; var Handled: Boolean);
-    procedure ScrollBox1MouseWheelUp(Sender: TObject; Shift: TShiftState;
-      MousePos: TPoint; var Handled: Boolean);
-    procedure CoolTrayIcon1DblClick(Sender: TObject);
-    procedure CoolTrayIcon1MouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure ControlWindow(var Msg: TMessage); message WM_SysCommand;
+    procedure btnCloseClick(Sender: TObject);
+    procedure lblAboutClick(Sender: TObject);
+    procedure ScrollBox1MouseWheelDown(Sender: TObject; Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+    procedure ScrollBox1MouseWheelUp(Sender: TObject; Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+    procedure CoolTrayIcon1MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure WMSysCommand(var Msg: TWMSysCommand); message WM_SysCommand;
+    procedure TrayIconDblClick(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 
   private
     { Private declarations }
@@ -73,7 +69,7 @@ type
   end;
 
 var
-  Server: TServer;
+  frmMain: TfrmMain;
   H: THandle;
   path, command, param, showas: Array of TEdit;
   openpath: Array of TBitBtn;
@@ -85,10 +81,10 @@ var
 
 implementation
 
-uses AboutForm;
+uses
+  AboutForm;
 
 {$R *.dfm}
-
 
 Function SetPrivilege(aPrivilegeName: String; aEnabled: Boolean): Boolean;
 Var
@@ -97,8 +93,7 @@ Var
   ReturnLength: Cardinal;
 Begin
   Result := False;
-  if OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES or
-    TOKEN_QUERY, hToken) then
+  if OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES or TOKEN_QUERY, hToken) then
   begin
     LookupPrivilegeValue(nil, 'SeShutdownPrivilege', tkp.Privileges[0].Luid);
     tkp.PrivilegeCount := 1;
@@ -131,27 +126,32 @@ begin
   end;
 end;
 
-procedure TServer.FormCreate(Sender: TObject);
+procedure TfrmMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  IdHTTPServer1.Active := False;
+end;
+
+procedure TfrmMain.FormCreate(Sender: TObject);
 var
   appINI: TIniFile;
   CmdStr, PathStr, paramStr, showasStr: String;
   m, step, Count: Integer;
-  Hint_Command, Hint_Path, Hint_Param, Hint_Showas,
-    Ver, Ready, Hint_Openpath, MinTray, StrtUp,
-    NumLin, Option, Serv, Lst, Save, bQuit, ListCmd, Listpath, Listparam, Listshow,
-    ServerHint, SerportHint, SimpleHint, SimportHint, NumLinHint,
-    MinTrayHint, StrtUpHint, SaveHint, bQuitHint: String;
-
+  Hint_Command, Hint_Path, Hint_Param, Hint_Showas, Ver, Ready, Hint_Openpath, MinTray, StrtUp, NumLin, Option, Serv, Lst, Save, bQuit, ListCmd, Listpath, Listparam, Listshow, ServerHint, SerportHint, SimpleHint, SimportHint, NumLinHint, MinTrayHint, StrtUpHint, SaveHint, bQuitHint: String;
+  frmAbout: TfrmAbout;
 begin
   version := '2.6';
 
   if not FileExists(ExtractFilePath(Application.ExeName) + 'GetAdmin.ini') then
   begin
-    frmAbout.version.Caption := version;
-    frmAbout.Label5.AutoSize := False;
-    frmAbout.Label5.Caption := 'The program is delivered by a principle "AS IS". No warranty is not attached and is not provided. You use this software at your own risk.' + ' The author will not be responsible for any loss or corruption of data, any loss of profit during use or misuse of this software.';
-
-    frmAbout.ShowModal;
+    frmAbout := TfrmAbout.Create(self);
+    try
+      frmAbout.version.Caption := version;
+      frmAbout.Label5.AutoSize := False;
+      frmAbout.Label5.Caption := 'The program is delivered by a principle "AS IS". No warranty is not attached and is not provided. You use this software at your own risk.' + ' The author will not be responsible for any loss or corruption of data, any loss of profit during use or misuse of this software.';
+      frmAbout.ShowModal;
+    finally
+      FreeAndNil(frmAbout);
+    end;
   end;
 
   appINI := TIniFile.Create(ChangeFileExt(Application.ExeName, '.ini'));
@@ -248,7 +248,7 @@ begin
     Listpath := 'ПУТЬ ДО ФАЙЛА ИЛИ URL';
     Listparam := 'ПАРАМЕТРЫ';
     Listshow := 'РЕЖИМ ЗАПУСКА';
-    Label11.Left := 620;
+    lblShowCommand.Left := 620;
     ServerHint := 'IP адрес вашего компьютера';
     SerportHint := 'Порт на котором будет запущен GetAdmin';
     SimpleHint := 'IP адрес сервера SimpleAPI из IOBroker';
@@ -265,27 +265,27 @@ begin
   ToTray.Hint := MinTrayHint;
   StartUp.Caption := StrtUp;
   StartUp.Hint := StrtUpHint;
-  Label5.Caption := NumLin;
-  GroupBox3.Caption := Option;
-  GroupBox1.Caption := Serv;
-  GroupBox4.Caption := Lst;
-  BtnSave.Caption := Save;
-  BtnSave.Hint := SaveHint;
-  BitBtn17.Caption := bQuit;
-  BitBtn17.Hint := bQuitHint;
-  Label6.Caption := ListCmd;
-  Label9.Caption := Listpath;
-  Label10.Caption := Listparam;
-  Label11.Caption := Listshow;
+  lblNumberOfLines.Caption := NumLin;
+  gbOptions.Caption := Option;
+  gbServer.Caption := Serv;
+  gbCommandList.Caption := Lst;
+  btnSave.Caption := Save;
+  btnSave.Hint := SaveHint;
+  btnClose.Caption := bQuit;
+  btnClose.Hint := bQuitHint;
+  lblCommand.Caption := ListCmd;
+  lblPath.Caption := Listpath;
+  lblParameters.Caption := Listparam;
+  lblShowCommand.Caption := Listshow;
   MainServer.Hint := ServerHint;
   MainServerPort.Hint := SerportHint;
   SimpleAPI_IP.Hint := SimpleHint;
   SimpleAPI_Port.Hint := SimportHint;
   Count1.Hint := NumLinHint;
 
-  StatusBar1.Panels[0].Text := Ver + version;
-  StatusBar1.Panels[1].Text := Incoming;
-  StatusBar1.Panels[2].Text := Ready;
+  StatusBar.Panels[0].Text := Ver + version;
+  StatusBar.Panels[1].Text := Incoming;
+  StatusBar.Panels[2].Text := Ready;
   PathStr := '';
   CmdStr := '';
   paramStr := '';
@@ -390,7 +390,7 @@ begin
 
 end;
 
-procedure TServer.IdHTTPServer1CommandGet(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
+procedure TfrmMain.IdHTTPServer1CommandGet(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
 var
   name, value, ProcListResponse, NameFile: string;
   I, n, m, showCmd, flagkey: Integer;
@@ -422,7 +422,7 @@ begin
     value := ARequestInfo.Params.ValueFromIndex[I];
     showCmd := 9;
     flagkey := 0;
-    StatusBar1.Panels[1].Text := Incoming + value;
+    StatusBar.Panels[1].Text := Incoming + value;
     if Name = 'cmd' then
     begin
       for m := 0 to (StrToInt(Count1.Text) - 1) do
@@ -453,7 +453,7 @@ begin
             showCmd := 8;
           if (showas[m].Text = 'SW_SHOWNOACTIVATE') then
             showCmd := 4;
-          ShellExecute(Server.Handle, 'open', Pchar(path[m].Text), Pchar(param[m].Text), nil, showCmd);
+          ShellExecute(frmMain.Handle, 'open', Pchar(path[m].Text), Pchar(param[m].Text), nil, showCmd);
           NameFile := ExtractFileName(path[m].Text);
           if EXE_Running(NameFile, False) then
             AResponseInfo.ContentText := '<html>Ok!<p>' + path[m].Text + '</p></html>'
@@ -906,8 +906,7 @@ begin
             keybd_event(HotKey[0], 0, KEYEVENTF_KEYUP, 0);
             flagkey := 1;
           end;
-          if (key.Count = 3) and ((HotKey[0] = $A0) or (HotKey[0] = $A1) or (HotKey[0] = $A2) or (HotKey[0] = $A3) or (HotKey[0] = $A4) or (HotKey[0] = $A5) or (HotKey[0] = $5B) or (HotKey[0] = $5C)) and
-            ((HotKey[1] = $A0) or (HotKey[1] = $A1) or (HotKey[1] = $A2) or (HotKey[1] = $A3) or (HotKey[1] = $A4) or (HotKey[1] = $A5) or (HotKey[1] = $5B) or (HotKey[1] = $5C)) then
+          if (key.Count = 3) and ((HotKey[0] = $A0) or (HotKey[0] = $A1) or (HotKey[0] = $A2) or (HotKey[0] = $A3) or (HotKey[0] = $A4) or (HotKey[0] = $A5) or (HotKey[0] = $5B) or (HotKey[0] = $5C)) and ((HotKey[1] = $A0) or (HotKey[1] = $A1) or (HotKey[1] = $A2) or (HotKey[1] = $A3) or (HotKey[1] = $A4) or (HotKey[1] = $A5) or (HotKey[1] = $5B) or (HotKey[1] = $5C)) then
           begin
             keybd_event(HotKey[0], 0, 0, 0);
             keybd_event(HotKey[1], 0, 0, 0);
@@ -917,8 +916,7 @@ begin
             keybd_event(HotKey[0], 0, KEYEVENTF_KEYUP, 0);
             flagkey := 1;
           end;
-          if (key.Count = 4) and ((HotKey[0] = $A0) or (HotKey[0] = $A1) or (HotKey[0] = $A2) or (HotKey[0] = $A3) or (HotKey[0] = $A4) or (HotKey[0] = $A5) or (HotKey[0] = $5B) or (HotKey[0] = $5C)) and
-            ((HotKey[1] = $A0) or (HotKey[1] = $A1) or (HotKey[1] = $A2) or (HotKey[1] = $A3) or (HotKey[1] = $A4) or (HotKey[1] = $A5) or (HotKey[1] = $5B) or (HotKey[1] = $5C)) and
+          if (key.Count = 4) and ((HotKey[0] = $A0) or (HotKey[0] = $A1) or (HotKey[0] = $A2) or (HotKey[0] = $A3) or (HotKey[0] = $A4) or (HotKey[0] = $A5) or (HotKey[0] = $5B) or (HotKey[0] = $5C)) and ((HotKey[1] = $A0) or (HotKey[1] = $A1) or (HotKey[1] = $A2) or (HotKey[1] = $A3) or (HotKey[1] = $A4) or (HotKey[1] = $A5) or (HotKey[1] = $5B) or (HotKey[1] = $5C)) and
             ((HotKey[2] = $A0) or (HotKey[2] = $A1) or (HotKey[2] = $A2) or (HotKey[2] = $A3) or (HotKey[2] = $A4) or (HotKey[2] = $A5) or (HotKey[2] = $5B) or (HotKey[2] = $5C)) then
           begin
             keybd_event(HotKey[0], 0, 0, 0);
@@ -949,7 +947,7 @@ begin
   end;
 end;
 
-procedure TServer.BtnSaveClick(Sender: TObject);
+procedure TfrmMain.btnSaveClick(Sender: TObject);
 var
   appINI: TIniFile;
   HTTP: TIdHTTP;
@@ -1012,7 +1010,7 @@ begin
   Application.Terminate;
 end;
 
-procedure TServer.ClickerOpenpath(Sender: TObject);
+procedure TfrmMain.ClickerOpenpath(Sender: TObject);
 var
   I: Integer;
 begin
@@ -1023,7 +1021,7 @@ begin
     path[indexOpenpath].Text := OpenDialog1.FileName;
 end;
 
-procedure TServer.ClickTedit(Sender: TObject);
+procedure TfrmMain.ClickTedit(Sender: TObject);
 var
   I: Integer;
 begin
@@ -1048,42 +1046,24 @@ begin
   end;
 end;
 
-procedure TServer.CoolTrayIcon1DblClick(Sender: TObject);
+procedure TfrmMain.N1Click(Sender: TObject);
 begin
-  Server.Show;
+  IdHTTPServer1.Active := False;
+  Close;
+end;
+
+procedure TfrmMain.N2Click(Sender: TObject);
+begin
+  frmMain.Show;
   Application.Restore;
 end;
 
-procedure TServer.N1Click(Sender: TObject);
+procedure TfrmMain.btnCloseClick(Sender: TObject);
 begin
-  IdHTTPServer1.Active := False;
-  HALT;
+  N1Click(nil);
 end;
 
-procedure TServer.N2Click(Sender: TObject);
-begin
-  Server.Show;
-  Application.Restore;
-end;
-
-procedure TServer.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  IdHTTPServer1.Active := False;
-  HALT;
-end;
-
-procedure TServer.BitBtn17Click(Sender: TObject);
-begin
-  IdHTTPServer1.Active := False;
-  HALT;
-end;
-
-procedure TServer.Label3DblClick(Sender: TObject);
-begin
-  ShellExecute(Server.Handle, 'open', 'http://www.instalator.ru', nil, nil, SW_SHOW)
-end;
-
-procedure TServer.GetRunProcess(ProcesList: TStringList);
+procedure TfrmMain.GetRunProcess(ProcesList: TStringList);
 var
   hSnapShot: THandle;
   ProcInfo: TProcessEntry32;
@@ -1104,7 +1084,7 @@ begin
   end;
 end;
 
-function TServer.EXE_Running(FileName: string; bFullpath: Boolean): Boolean;
+function TfrmMain.EXE_Running(FileName: string; bFullpath: Boolean): Boolean;
 var
   I: Integer;
   hSnapShot: THandle;
@@ -1143,48 +1123,64 @@ begin
   end;
 end;
 
-procedure TServer.Label13Click(Sender: TObject);
+procedure TfrmMain.lblAboutClick(Sender: TObject);
+var
+  frmAbout: TfrmAbout;
 begin
-  frmAbout.version.Caption := version;
-  frmAbout.Label5.AutoSize := False;
+  frmAbout := TfrmAbout.Create(self);
+  try
+    frmAbout.version.Caption := version;
+    frmAbout.Label5.AutoSize := False;
 
-  { TODO : Neues About Fenster? }
-  if Language.ItemIndex in [1, 2] then
-  begin
-    frmAbout.Label5.Caption := 'The program is delivered by a principle "AS IS". No warranty is not attached and is not provided. You use this software at your own risk.' + ' The author will not be responsible for any loss or corruption of data, any loss of profit during use or misuse of this software.';
-  end;
-  if Language.ItemIndex = 0 then
-  begin
-    frmAbout.Label5.Caption := 'Программа поставляется по принципу "КАК ЕСТЬ" ("AS IS").Никаких гарантий не прилагается и не предусматривается. Вы используете это программное обеспечение на свой страх и риск.' + ' Автор не будет отвечать ни за какие потери или искажения данных, любую упущенную выгоду в процессе использования или неправильного использования этого программного обечпечения.';
-  end;
+    { TODO : Neues About Fenster? }
+    if Language.ItemIndex in [1, 2] then
+    begin
+      frmAbout.Label5.Caption := 'The program is delivered by a principle "AS IS". No warranty is not attached and is not provided. You use this software at your own risk.' + ' The author will not be responsible for any loss or corruption of data, any loss of profit during use or misuse of this software.';
+    end;
+    if Language.ItemIndex = 0 then
+    begin
+      frmAbout.Label5.Caption := 'Программа поставляется по принципу "КАК ЕСТЬ" ("AS IS").Никаких гарантий не прилагается и не предусматривается. Вы используете это программное обеспечение на свой страх и риск.' + ' Автор не будет отвечать ни за какие потери или искажения данных, любую упущенную выгоду в процессе использования или неправильного использования этого программного обечпечения.';
+    end;
 
-  frmAbout.ShowModal;
+    frmAbout.ShowModal;
+  finally
+    FreeAndNil(frmAbout);
+  end;
 end;
 
-procedure TServer.ScrollBox1MouseWheelDown(Sender: TObject;
-  Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+procedure TfrmMain.ScrollBox1MouseWheelDown(Sender: TObject; Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
 begin
   ScrollBox1.VertScrollBar.Position := ScrollBox1.VertScrollBar.Position + 4;
 end;
 
-procedure TServer.ScrollBox1MouseWheelUp(Sender: TObject;
-  Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+procedure TfrmMain.ScrollBox1MouseWheelUp(Sender: TObject; Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
 begin
   ScrollBox1.VertScrollBar.Position := ScrollBox1.VertScrollBar.Position - 4;
 end;
 
-procedure TServer.CoolTrayIcon1MouseUp(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TfrmMain.TrayIconDblClick(Sender: TObject);
+begin
+  TrayIcon.Visible := False;
+  Show();
+  WindowState := wsNormal;
+  Application.BringToFront();
+end;
+
+procedure TfrmMain.CoolTrayIcon1MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   if Button = mbRight then
     PopupMenu1.Popup(X, Y);
 end;
 
-procedure TServer.ControlWindow(var Msg: TMessage);
+procedure TfrmMain.WMSysCommand(var Msg: TWMSysCommand);
 begin
-  If Msg.WParam = SC_MINIMIZE then
+  if (Msg.CmdType and $FFF0 = SC_MINIMIZE) then
   begin
-    ShowWindow(Application.Handle, SW_MINIMIZE);
+    Hide();
+    WindowState := wsMinimized;
+
+    TrayIcon.Visible := true;
+    TrayIcon.Animate := true;
   end
   else
     inherited;

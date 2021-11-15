@@ -1,11 +1,11 @@
-object Server: TServer
+object frmMain: TfrmMain
   Left = 488
   Top = 277
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'GetAdmin'
-  ClientHeight = 475
-  ClientWidth = 744
+  ClientHeight = 474
+  ClientWidth = 749
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -38,14 +38,13 @@ object Server: TServer
     000F2000000F0000010F0000039F000000FF000000FF000010FF800039FFC000
     0FFFE0000FFFF0010FFFF8039FFFFC00FFFFFE00FFFFFF10FFFFFFB9FFFF}
   KeyPreview = True
-  OldCreateOrder = False
   Position = poScreenCenter
   Visible = True
-  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
-  object Label13: TLabel
+  object lblAbout: TLabel
     Left = 688
     Top = 71
     Width = 28
@@ -60,12 +59,12 @@ object Server: TServer
     Font.Style = []
     ParentColor = False
     ParentFont = False
-    OnClick = Label13Click
+    OnClick = lblAboutClick
   end
-  object StatusBar1: TStatusBar
+  object StatusBar: TStatusBar
     Left = 0
-    Top = 456
-    Width = 744
+    Top = 455
+    Width = 749
     Height = 19
     Panels = <
       item
@@ -78,35 +77,35 @@ object Server: TServer
         Width = 100
       end>
   end
-  object GroupBox4: TGroupBox
-    Left = 0
+  object gbCommandList: TGroupBox
+    Left = 8
     Top = 88
-    Width = 747
+    Width = 741
     Height = 369
     Caption = 'Command list'
     TabOrder = 5
-    object Label9: TLabel
+    object lblPath: TLabel
       Left = 193
       Top = 18
       Width = 66
       Height = 13
       Caption = 'PATH or URL'
     end
-    object Label6: TLabel
-      Left = 6
+    object lblCommand: TLabel
+      Left = 3
       Top = 18
       Width = 56
       Height = 13
       Caption = 'COMMAND'
     end
-    object Label10: TLabel
+    object lblParameters: TLabel
       Left = 484
       Top = 18
       Width = 74
       Height = 13
       Caption = 'PARAMETERS'
     end
-    object Label11: TLabel
+    object lblShowCommand: TLabel
       Left = 617
       Top = 18
       Width = 61
@@ -124,21 +123,21 @@ object Server: TServer
       OnMouseWheelUp = ScrollBox1MouseWheelUp
     end
   end
-  object GroupBox2: TGroupBox
+  object gbSimpleApi: TGroupBox
     Left = 192
     Top = 0
     Width = 177
     Height = 81
     Caption = 'Simple API'
     TabOrder = 3
-    object Label7: TLabel
+    object lblSimpleApiIP: TLabel
       Left = 9
       Top = 23
       Width = 13
       Height = 13
       Caption = 'IP:'
     end
-    object Label8: TLabel
+    object lblSimpleApiPort: TLabel
       Left = 8
       Top = 48
       Width = 22
@@ -168,7 +167,7 @@ object Server: TServer
       Text = 'port SimpleAPI'
     end
   end
-  object BtnSave: TButton
+  object btnSave: TButton
     Left = 670
     Top = 8
     Width = 70
@@ -178,9 +177,9 @@ object Server: TServer
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0
-    OnClick = BtnSaveClick
+    OnClick = btnSaveClick
   end
-  object BitBtn17: TBitBtn
+  object btnClose: TBitBtn
     Left = 670
     Top = 42
     Width = 70
@@ -190,16 +189,16 @@ object Server: TServer
     ParentShowHint = False
     ShowHint = True
     TabOrder = 1
-    OnClick = BitBtn17Click
+    OnClick = btnCloseClick
   end
-  object GroupBox1: TGroupBox
+  object gbServer: TGroupBox
     Left = 8
     Top = 0
     Width = 177
     Height = 81
     Caption = 'Server'
     TabOrder = 2
-    object Label1: TLabel
+    object lblServerIP: TLabel
       Left = 8
       Top = 24
       Width = 13
@@ -207,7 +206,7 @@ object Server: TServer
       Caption = 'IP:'
       Transparent = False
     end
-    object Label2: TLabel
+    object lblServerPort: TLabel
       Left = 8
       Top = 50
       Width = 22
@@ -216,7 +215,7 @@ object Server: TServer
     end
     object MainServer: TEdit
       Left = 37
-      Top = 21
+      Top = 20
       Width = 130
       Height = 21
       Hint = 'IP address of your computer'
@@ -237,16 +236,16 @@ object Server: TServer
       Text = 'MainServerPort'
     end
   end
-  object GroupBox3: TGroupBox
+  object gbOptions: TGroupBox
     Left = 376
     Top = 0
     Width = 281
     Height = 81
     Caption = 'Options'
     TabOrder = 4
-    object Label5: TLabel
+    object lblNumberOfLines: TLabel
       Left = 152
-      Top = 22
+      Top = 20
       Width = 76
       Height = 13
       Caption = 'Number of lines:'
@@ -312,50 +311,13 @@ object Server: TServer
   object IdHTTPServer1: TIdHTTPServer
     Bindings = <>
     OnCommandGet = IdHTTPServer1CommandGet
-    Left = 264
-    Top = 328
-  end
-  object CoolTrayIcon1: TCoolTrayIcon
-    CycleInterval = 0
-    Hint = 'GetAdmin'
-    Icon.Data = {
-      0000010001002020100000000000E80200001600000028000000200000004000
-      0000010004000000000080020000000000000000000000000000000000000000
-      000000008000008000000080800080000000800080008080000080808000C0C0
-      C0000000FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF000000
-      000000000000330077000000000000000000000000003B077070000000000000
-      000000000000BB807007000000000000000000000300B0007000700000000000
-      00000000330070070700070000000000000000003B0700700070007000000000
-      00000000BB800700000700070000000000000300B00070000000700070000000
-      0000330070070000000007000700000000003B07007000000000007007000000
-      0000BB800700000000000007070000000300B000700000000070000077000000
-      330070070000000007000000803300003B070070000000000000000800330000
-      BB8007000000000000000080BBBB0300B000700000000070000008000BB03300
-      70070000000707000000803300003B070070000000707000000800330000BB80
-      07000000070700000080BBBB0000B000700000000070000008000BB000007007
-      0000000007000000803300000000707000007770000000080033000000008700
-      0007070700000080BBBB00000000080000077777000008000BB0000000000080
-      0007070700008033000000000000000800007770000800330000000000000000
-      800000000080BBBB00000000000000000800000008000BB00000000000000000
-      0080000080330000000000000000000000080008003300000000000000000000
-      00008080BBBB00000000000000000000000008000BB00000000000000000FFFF
-      33FFFFFF21FFFFFF00FFFFFB007FFFF3003FFFF2001FFFF0000FFFB00007FF30
-      0003FF200003FF000003FB000003F3000000F2000000F0000010B00000393000
-      000F2000000F0000010F0000039F000000FF000000FF000010FF800039FFC000
-      0FFFE0000FFFF0010FFFF8039FFFFC00FFFFFE00FFFFFF10FFFFFFB9FFFF}
-    IconVisible = True
-    IconIndex = 0
-    PopupMenu = PopupMenu1
-    MinimizeToTray = True
-    OnDblClick = CoolTrayIcon1DblClick
-    OnMouseUp = CoolTrayIcon1MouseUp
-    Left = 336
-    Top = 328
+    Left = 261
+    Top = 329
   end
   object PopupMenu1: TPopupMenu
     AutoPopup = False
     Left = 400
-    Top = 328
+    Top = 329
     object N2: TMenuItem
       Caption = 'Show'
       OnClick = N2Click
@@ -379,11 +341,18 @@ object Server: TServer
     Request.Ranges.Units = 'bytes'
     Request.Ranges = <>
     HTTPOptions = [hoForceEncodeParams]
-    Left = 208
-    Top = 328
+    Left = 168
+    Top = 330
   end
   object OpenDialog1: TOpenDialog
-    Left = 456
+    Left = 477
     Top = 328
+  end
+  object TrayIcon: TTrayIcon
+    Hint = 'GetAdmin'
+    PopupMenu = PopupMenu1
+    OnDblClick = TrayIconDblClick
+    Left = 334
+    Top = 329
   end
 end

@@ -1,12 +1,18 @@
 program GetAdmin;
 
 uses
-  Forms, Windows, Dialogs,
-  Iobroker in 'Iobroker.pas' {Form1} ,
+  madExcept,
+  madLinkDisAsm,
+  madListHardware,
+  madListProcesses,
+  madListModules,
+  Forms,
+  Windows,
+  Dialogs,
+  MainForm in 'MainForm.pas' {frmMain} ,
   AboutForm in 'AboutForm.pas' {frmAbout};
 
 {$R *.res}
-
 
 begin
   H := CreateMutex(nil, True, 'i3n5s7t99a8l4a56t6o533r');
@@ -17,8 +23,7 @@ begin
   end;
 
   Application.Initialize;
-  Application.CreateForm(TServer, Server);
-  Application.CreateForm(TfrmAbout, frmAbout);
+  Application.CreateForm(TfrmMain, frmMain);
   Application.Run;
 
 end.
